@@ -14,11 +14,15 @@ app = FastAPI()
 
 
 def get_client_ip(request: Request):
-    return (
+    ip = (
         request.headers.get("CF-Connecting-IP")
         or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
         or request.client.host
     )
+
+    print(f"Rate limit key: {ip}")
+
+    return ip
 
 
 limiter = Limiter(key_func=get_client_ip)
@@ -67,9 +71,13 @@ def status(request: Request):
         "uptime": datetime.datetime.now() - inicio
     }
 
+
 @app.get("/debug")
 def debug(request: Request):
+    ip = get_client_ip(request)
+
     return {
+        "limit_key": ip,
         "client": request.client.host,
         "cf": request.headers.get("CF-Connecting-IP"),
         "xff": request.headers.get("X-Forwarded-For"),
