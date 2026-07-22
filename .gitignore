@@ -1,0 +1,11 @@
+# Entorno virtual
+.venv/
+venv/
+
+# Caché de Python
+__pycache__/
+*.py[cod]
+
+# Otros
+.pytest_cache/
+.mypy_cache/
