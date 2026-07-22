@@ -66,3 +66,13 @@ def status(request: Request):
         },
         "uptime": datetime.datetime.now() - inicio
     }
+
+@app.get("/debug")
+def debug(request: Request):
+    return {
+        "client": request.client.host,
+        "cf": request.headers.get("CF-Connecting-IP"),
+        "xff": request.headers.get("X-Forwarded-For"),
+        "xri": request.headers.get("X-Real-IP"),
+        "headers": dict(request.headers)
+    }
