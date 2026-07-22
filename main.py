@@ -44,4 +44,25 @@ app.add_middleware(
 @app.get("/status")
 @limiter.limit("35/minute")
 def status(request: Request):
-    ...
+    memory = virtual_memory()
+    disk = disk_usage("/")
+    cpu = cpu_percent()
+
+    return {
+        "status": "online",
+        "memory": {
+            "total": memory.total,
+            "available": memory.available,
+            "percent": memory.percent
+        },
+        "disk": {
+            "total": disk.total,
+            "used": disk.used,
+            "free": disk.free,
+            "percent": disk.percent
+        },
+        "cpu": {
+            "percent": cpu
+        },
+        "uptime": datetime.datetime.now() - inicio
+    }
