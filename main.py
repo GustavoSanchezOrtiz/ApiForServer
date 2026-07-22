@@ -1,21 +1,26 @@
-from fastapi import FastAPI
-from psutil import virtual_memory, disk_usage, cpu_percent, net_io_counters, boot_time
-import datetime 
-inicio = datetime.datetime.fromtimestamp(boot_time())
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter
+
+from psutil import virtual_memory, disk_usage, cpu_percent, boot_time
+import datetime
+
+from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-from fastapi import Request
+
+inicio = datetime.datetime.fromtimestamp(boot_time())
+
 app = FastAPI()
+
 limiter = Limiter(key_func=get_remote_address)
 
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, limiter._rate_limit_exceeded_handler)
+app.add_exception_handler(
+    RateLimitExceeded,
+    _rate_limit_exceeded_handler
+)
 app.add_middleware(SlowAPIMiddleware)
-
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,6 +31,7 @@ app.add_middleware(
     allow_methods=["GET"],
     allow_headers=["*"],
 )
+
 
 @app.get("/status")
 @limiter.limit("35/minute")
