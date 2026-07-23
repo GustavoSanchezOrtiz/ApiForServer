@@ -14,15 +14,11 @@ app = FastAPI()
 
 
 def get_client_ip(request: Request):
-    ip = (
+    return (
         request.headers.get("CF-Connecting-IP")
         or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
         or request.client.host
     )
-
-    print(f"Rate limit key: {ip}")
-
-    return ip
 
 
 limiter = Limiter(key_func=get_client_ip)
@@ -46,7 +42,7 @@ app.add_middleware(
 
 
 @app.get("/status")
-@limiter.limit("35/minute")
+@limiter.limit("120/minute")
 def status(request: Request):
     memory = virtual_memory()
     disk = disk_usage("/")
@@ -69,18 +65,4 @@ def status(request: Request):
             "percent": cpu
         },
         "uptime": datetime.datetime.now() - inicio
-    }
-
-
-@app.get("/debug")
-def debug(request: Request):
-    ip = get_client_ip(request)
-
-    return {
-        "limit_key": ip,
-        "client": request.client.host,
-        "cf": request.headers.get("CF-Connecting-IP"),
-        "xff": request.headers.get("X-Forwarded-For"),
-        "xri": request.headers.get("X-Real-IP"),
-        "headers": dict(request.headers)
     }
